@@ -3,3 +3,5 @@
 *.dcp
 *.rpt
 .Xil/
+*.bit
+*.xdc
