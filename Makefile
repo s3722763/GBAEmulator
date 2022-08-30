@@ -90,6 +90,3 @@ upload:
 	echo "refresh_hw_device -update_hw_probes false [lindex [get_hw_devices $(FPGA_PART_FOR_UPLOAD)] 0]" >> upload.tcl
 
 	vivado -mode batch -source upload.tcl 
-	
-a:
-	vivado -mode batch -source vivado_script.tcl 
