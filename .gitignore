@@ -1,7 +1,11 @@
-*.log
+.vscode
+tb/build
+tb/tests
+Testing
 *.jou
-*.dcp
-*.rpt
-.Xil/
-*.bit
-*.xdc
+*.log
+*.vcd
+tb/cmake-build-debug/*
+tb/.idea/*
+reports/*
+results.xml

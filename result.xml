@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="VerilatorTest" errors="0" failures="1" tests="34" hostname="tbd" time="0.006" timestamp="2022-12-30T03:46:09Z">
+    <properties>
+      <property name="random-seed" value="838432684"/>
+    </properties>
+    <testcase classname="VerilatorTest.global" name="A" time="0.000" status="run"/>
+    <testcase classname="VerilatorTest.global" name="SMI Moves from State OFF to Ready" time="0.000" status="run">
+      <failure message="verilatorInfo.model->ready == 1" type="REQUIRE">
+FAILED:
+  REQUIRE( verilatorInfo.model->ready == 1 )
+with expansion:
+  0 == 1
+at /home/daniel/Projects/EthernetController/tb/SMI/SMI.cpp:33
+      </failure>
+    </testcase>
+    <system-out/>
+    <system-err/>
+  </testsuite>
+</testsuites>

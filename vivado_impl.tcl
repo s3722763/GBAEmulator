@@ -27,6 +27,35 @@ proc add_constraint_files {} {
         read_xdc $file
     }
 }
+# https://github.com/camstutz/vivado-workflow/blob/master/scripts/full_implementation.tcl
+proc add_ip_files {} {
+    set files {}
+    lappend files {*}[FindFiles "./ip" "*.xci"]
+
+    foreach file $files {
+        read_ip $file
+    }
+
+    foreach ip [get_ips] {
+        set ip_filename [get_property IP_FILE $ip]
+        set ip_dcp [file rootname $ip_filename]
+        append ip_dcp ".dcp"
+        set ip_xml [file rootname $ip_filename]
+        append ip_xml ".xml"
+
+        if {([file exists $ip_dcp] == 0) || [expr {[file mtime $ip_filename ] > [file mtime $ip_dcp ]}]} {
+            reset_target all $ip
+            
+            file delete $ip_xml
+
+            generate_target all $ip
+            set_property generate_synth_checkpoint true [get_files $ip_filename]
+            synth_ip $ip
+        }
+    }
+
+    generate_target all [get_ips]
+}
 
 proc synthesise_design {FPGA_PART TOP_MODULE_NAME PROJECT_NAME} {
     synth_design -part $FPGA_PART -top $TOP_MODULE_NAME
@@ -57,11 +86,26 @@ proc generate_bitstream {PROBE_FILE PROJECT_NAME} {
     write_bitstream -force ${PROJECT_NAME}
 }
 
-proc run_impl {FPGA_PART TOP_MODULE_NAME PROJECT_NAME PROBE_FILE} {
+proc run_impl {FPGA_PART TOP_MODULE_NAME PROJECT_NAME PROBE_FILE BOARD_PART} {
+    set_part $FPGA_PART
+    set_property TARGET_LANGUAGE Verilog [current_project]
+    set_property BOARD_PART $BOARD_PART [current_project]
+    set_property DEFAULT_LIB word [current_project]
+
     add_sv_files
+    add_ip_files
     add_constraint_files
-    synthesise_design $FPGA_PART $TOP_MODULE_NAME $PROJECT_NAME
-    implement_design $PROJECT_NAME
-    generate_bitstream $PROBE_FILE $PROJECT_NAME
+
 }
 
+proc run_synth {FPGA_PART TOP_MODULE_NAME PROJECT_NAME PROBE_FILE BOARD_PART} {
+    set_part $FPGA_PART
+    set_property TARGET_LANGUAGE Verilog [current_project]
+    set_property BOARD_PART $BOARD_PART [current_project]
+    set_property DEFAULT_LIB word [current_project]
+
+    add_sv_files
+    add_ip_files
+    add_constraint_files
+    synthesise_design $FPGA_PART $TOP_MODULE_NAME $PROJECT_NAME
+}

@@ -3,34 +3,37 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 PROJECT_NAME := Test
 SOURCES := $(call rwildcard,src,*.sv)
 CONSTRAINTS := $(call rwildcard,constraints,*.xdc)
-TB_SOURCE := tb/Testbench.sv
-TB_CPP_SOURCES = $(call rwildcard,tb,*.cpp)
 FPGA_PART := "xc7a100tcsg324-1"
 FPGA_PART_FOR_UPLOAD := "xc7a100t_0"
-VERILATOR_BIN := verilator_bin
-TOP_MODULE_NAME := Top
+TOP_MODULE_NAME := InstructionDecoder
 PROBE_FILE := "${PROJECT_NAME}.ltx"
 FULL_PROBE_FILE := "" 
 PROGRAM_FILE := "${PROJECT_NAME}.bit"
+BOARD_PART := "digilentinc.com:nexys-a7-100t:part0:1.3"
+NPROC := 48
 
 generate:
-	$(VERILATOR_BIN) -cc -Wall --top-module Testbench $(SOURCES) $(TB_SOURCE)
+	cmake -Btb/build tb/
 
 build:
-	$(VERILATOR_BIN) -cc -Wall --exe --build --top-module Testbench $(SOURCES) $(TB_SOURCE) $(TB_CPP_SOURCES)
+	cmake --build tb/build -j$(NPROC)
 
-run_tests:
-# To do parallel tests, look at sharding (catch2)
-	./obj_dir/VTestbench
+test:
+	./tb/build/VerilatorTest
 
 clean:
-	rm -r obj_dir
+	rm -r tb/build
 
 # https://docs.xilinx.com/r/en-US/ug892-vivado-design-flows-overview/Using-Non-Project-Mode-Tcl-Commands
 
+synth:
+	echo "source vivado_impl.tcl" > synth.tcl
+	echo "run_synth $(FPGA_PART) $(TOP_MODULE_NAME) $(PROJECT_NAME) $(PROBE_FILE) $(BOARD_PART)" >> synth.tcl
+	vivado -mode batch -source synth.tcl
+
 impl:
 	echo "source vivado_impl.tcl" > impl.tcl
-	echo "run_impl $(FPGA_PART) $(TOP_MODULE_NAME) $(PROJECT_NAME) $(PROBE_FILE)" >> impl.tcl
+	echo "run_impl $(FPGA_PART) $(TOP_MODULE_NAME) $(PROJECT_NAME) $(PROBE_FILE) $(BOARD_PART)" >> impl.tcl
 	vivado -mode batch -source impl.tcl
 
 upload:
